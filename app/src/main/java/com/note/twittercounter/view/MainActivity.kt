@@ -1,5 +1,6 @@
 package com.note.twittercounter.view
 
+import TwitterViewModel
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -13,7 +14,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatEditText
 import com.note.twittercounter.R
-import com.note.twittercounter.ViewModel.TwitterViewModel
+import com.note.twittercounter.model.createRetrofitInstance
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.http.POST
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,6 +37,7 @@ class MainActivity : AppCompatActivity() {
         val charRemain: TextView = findViewById(R.id.charRemain)
         val copyButton: AppCompatButton = findViewById(R.id.copybtn)
         val clearButton: AppCompatButton = findViewById(R.id.clearbtn)
+        val postButton:AppCompatButton = findViewById(R.id.postbtn)
 
         twitterViewModel.charCount.observe(this) { count ->
             charCount.text = "$count / ${twitterViewModel.maxChar}"
@@ -65,5 +75,40 @@ class MainActivity : AppCompatActivity() {
         clearButton.setOnClickListener {
             inputText.text?.clear()
         }
+        postButton.setOnClickListener {
+            val tweetText = inputText.text.toString()
+            if (tweetText.isNotEmpty()) {
+                CoroutineScope(Dispatchers.Main).launch {
+                    postTweet(tweetText)
+
+                }
+            } else {
+                Toast.makeText(this, "Please enter text for the tweet", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+
     }
-}
+
+
+    private fun postTweet(status: String) {
+        val twitterApi = createRetrofitInstance()
+
+        val call = twitterApi.postTweet(status)
+        call.enqueue(object : Callback<POST> {
+            override fun onResponse(call: Call<POST>, response: Response<POST>) {
+                if (response.isSuccessful) {
+                    Toast.makeText(this@MainActivity,"tweet post",Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@MainActivity,"tweet not post",Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<POST>, t: Throwable) {
+
+                Toast.makeText(this@MainActivity,"Error",Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    }
