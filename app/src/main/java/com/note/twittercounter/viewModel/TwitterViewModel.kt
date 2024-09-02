@@ -1,21 +1,23 @@
+package com.note.twittercounter.viewModel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 class TwitterViewModel : ViewModel() {
 
-     val maxChar = 280
-     val urlLength = 23
 
-    private val _charCount = MutableLiveData<Int>()
-    val charCount: LiveData<Int> = _charCount
+    val maxChar = 280
+    val urlLength = 23
 
-    private val _charRemaining = MutableLiveData<Int>()
-    val charRemaining: LiveData<Int> = _charRemaining
+    private val _charCount = MutableStateFlow(0)
+    val charCount: StateFlow<Int> = _charCount
 
-    private val _isValid = MutableLiveData<Boolean>()
-    val isValid: LiveData<Boolean> = _isValid
+    private val _charRemaining = MutableStateFlow(maxChar)
+    val charRemaining: StateFlow<Int> = _charRemaining
+
+    private val _isValid = MutableStateFlow(true)
+    val isValid: StateFlow<Boolean> = _isValid
 
     fun onTextChanged(input: String) {
         val (charCounter, valid) = validateAndCountTwitterCharacters(input)
@@ -23,7 +25,6 @@ class TwitterViewModel : ViewModel() {
         _charRemaining.value = maxChar - charCounter
         _isValid.value = valid
     }
-
 
 
     private fun countTwitterCharacters(text: String): Int {

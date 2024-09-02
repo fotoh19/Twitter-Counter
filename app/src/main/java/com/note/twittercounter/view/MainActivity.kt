@@ -1,6 +1,6 @@
 package com.note.twittercounter.view
 
-import TwitterViewModel
+import com.note.twittercounter.viewModel.TwitterViewModel
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatEditText
+import androidx.lifecycle.lifecycleScope
 import com.note.twittercounter.R
 import com.note.twittercounter.model.createRetrofitInstance
 import kotlinx.coroutines.CoroutineScope
@@ -39,19 +40,25 @@ class MainActivity : AppCompatActivity() {
         val clearButton: AppCompatButton = findViewById(R.id.clearbtn)
         val postButton:AppCompatButton = findViewById(R.id.postbtn)
 
-        twitterViewModel.charCount.observe(this) { count ->
-            charCount.text = "$count / ${twitterViewModel.maxChar}"
+        lifecycleScope.launchWhenStarted {
+            twitterViewModel.charCount.collect { count ->
+                charCount.text = "$count / ${twitterViewModel.maxChar}"
+            }
         }
 
-        twitterViewModel.charRemaining.observe(this) { remaining ->
-            charRemain.text = "$remaining"
+        lifecycleScope.launchWhenStarted {
+            twitterViewModel.charRemaining.collect { remaining ->
+                charRemain.text = "$remaining"
+            }
         }
 
-        twitterViewModel.isValid.observe(this) { isValid ->
-            if (!isValid || twitterViewModel.charCount.value!! >= twitterViewModel.maxChar) {
-                inputText.filters = arrayOf(InputFilter.LengthFilter(twitterViewModel.maxChar))
-            } else {
-                inputText.filters = arrayOf()
+        lifecycleScope.launchWhenStarted {
+            twitterViewModel.isValid.collect { isValid ->
+                if (!isValid || twitterViewModel.charCount.value >= twitterViewModel.maxChar) {
+                    inputText.filters = arrayOf(InputFilter.LengthFilter(twitterViewModel.maxChar))
+                } else {
+                    inputText.filters = arrayOf()
+                }
             }
         }
 
